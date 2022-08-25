@@ -42,12 +42,6 @@ async function getPeople() {
   return response.json();
 }
 
-type filter = {
-  name: string;
-  selected: boolean;
-  value: string;
-};
-
 type row = {
   id: number;
   picture: string;
@@ -59,57 +53,72 @@ type row = {
   gender: 'feminino' | 'masculino';
 };
 
-const filterObjects: filter[] = [
-  { name: 'gender', selected: false, value: '' },
-  { name: 'age', selected: false, value: '' },
-  { name: 'nationality', selected: false, value: '' },
-];
+const filterObject = {
+  gender: {
+    selected: false,
+    value: '',
+  },
+  age: {
+    selected: false,
+    value: '',
+  },
+  nationality: {
+    selected: false,
+    value: '',
+  },
+};
 
 function App() {
   const [tableData, setTableData] = useState<row[]>([]);
   const [originalData, setOriginalData] = useState<row[]>([]);
   const [nationalities, setNationalities] = useState([]);
-  const [filters, setFilters] = useState<filter[]>(filterObjects);
+  const [filters, setFilters] = useState(filterObject);
 
   const handleChangeNationality = (event: SelectChangeEvent) => {
-    const nationality = filters[2];
+    const newNationality = {
+      ...filters.nationality,
+      selected: true,
+      value: event.target.value as string,
+    };
 
-    nationality.selected = true;
-    nationality.value = event.target.value as string;
-
-    setFilters([...filters, (filters[2] = nationality)]);
+    setFilters({ ...filters, nationality: newNationality });
   };
 
   const handleChangeAge = (event) => {
-    const age = filters[1];
+    const newAge = {
+      ...filters.age,
+      selected: true,
+      value: event.target.value as string,
+    };
 
-    age.selected = true;
-    age.value = event.target.value as string;
-
-    setFilters([...filters, (filters[1] = age)]);
+    setFilters({ ...filters, age: newAge });
   };
 
   const handleChangeGender = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const gender = filters[0];
+    const newGender = {
+      ...filters.gender,
+      selected: true,
+      value: (event.target as HTMLInputElement).value,
+    };
 
-    gender.selected = true;
-    gender.value = (event.target as HTMLInputElement).value;
-
-    setFilters([...filters, (filters[0] = gender)]);
+    setFilters({ ...filters, gender: newGender });
   };
 
   const filterCase = (): string => {
-    if (filters[0].selected && filters[1].selected && filters[2].selected)
+    if (
+      filters.gender.selected &&
+      filters.age.selected &&
+      filters.nationality.selected
+    )
       return 'all';
-    if (filters[0].selected && filters[1].selected)
-      return `${filters[0].name}-${filters[1].name}`;
-    if (filters[0].selected && filters[2].selected)
-      return `${filters[0].name}-${filters[2].name}`;
-    if (filters[1].selected && filters[2].selected)
-      return `${filters[1].name}-${filters[2].name}`;
-    if (filters[0].selected) return filters[0].name;
-    if (filters[1].selected) return filters[1].name;
-    return filters[2].name;
+    if (filters.gender.selected && filters.age.selected) return 'gender-age';
+    if (filters.gender.selected && filters.nationality.selected)
+      return 'gender-nationality';
+    if (filters.age.selected && filters.nationality.selected)
+      return 'age-nationality';
+    if (filters.gender.selected) return 'gender';
+    if (filters.age.selected) return 'age';
+    return 'nationality';
   };
 
   const handleFilter = () => {
@@ -118,9 +127,9 @@ function App() {
         setTableData(
           originalData.filter(
             (el) =>
-              el.gender === filters[0].value &&
-              el.age === Number.parseInt(filters[1].value) &&
-              el.nat === filters[2].value
+              el.gender === filters.gender.value &&
+              el.age === Number.parseInt(filters.age.value) &&
+              el.nat === filters.nationality.value
           )
         );
         break;
@@ -128,8 +137,8 @@ function App() {
         setTableData(
           originalData.filter(
             (el) =>
-              el.gender === filters[0].value &&
-              el.age === Number.parseInt(filters[1].value)
+              el.gender === filters.gender.value &&
+              el.age === Number.parseInt(filters.age.value)
           )
         );
         break;
@@ -137,7 +146,8 @@ function App() {
         setTableData(
           originalData.filter(
             (el) =>
-              el.gender === filters[0].value && el.nat === filters[2].value
+              el.gender === filters.gender.value &&
+              el.nat === filters.nationality.value
           )
         );
         break;
@@ -146,43 +156,33 @@ function App() {
         setTableData(
           originalData.filter(
             (el) =>
-              el.age === Number.parseInt(filters[1].value) &&
-              el.nat === filters[2].value
+              el.age === Number.parseInt(filters.age.value) &&
+              el.nat === filters.nationality.value
           )
         );
         break;
       case 'gender':
         setTableData(
-          originalData.filter((el) => el.gender === filters[0].value)
+          originalData.filter((el) => el.gender === filters.gender.value)
         );
         break;
       case 'age':
         setTableData(
           originalData.filter(
-            (el) => el.age === Number.parseInt(filters[1].value)
+            (el) => el.age === Number.parseInt(filters.age.value)
           )
         );
         break;
       case 'nationality':
-        setTableData(originalData.filter((el) => el.nat === filters[2].value));
+        setTableData(
+          originalData.filter((el) => el.nat === filters.nationality.value)
+        );
         break;
     }
   };
 
   const handleFilterClean = () => {
-    const gender = filters[0];
-    gender.value = '';
-    gender.selected = false;
-
-    const age = filters[1];
-    age.value = '';
-    age.selected = false;
-
-    const nationality = filters[2];
-    nationality.value = '';
-    nationality.selected = false;
-
-    setFilters([gender, age, nationality]);
+    setFilters({ ...filterObject });
     setTableData(originalData);
   };
 
@@ -199,7 +199,7 @@ function App() {
         gender: el.gender === 'female' ? 'feminino' : 'masculino',
       }));
 
-      let nationalities = data.results
+      const nationalities = data.results
         .map((p) => p.nat)
         .filter(function (value, index, array) {
           return array.indexOf(value) === index;
@@ -244,17 +244,12 @@ function App() {
         >
           <Box sx={{ width: '100%', marginBottom: 5 }}>
             <FormControl sx={{ width: '100%' }} variant='outlined'>
-              <InputLabel htmlFor='outlined-adornment-password'>
-                Buscar por nome...
-              </InputLabel>
+              <InputLabel htmlFor='search-bar'>Buscar por nome...</InputLabel>
               <OutlinedInput
-                id='outlined-adornment-password'
+                id='search-bar'
                 endAdornment={
                   <InputAdornment position='end'>
-                    <IconButton
-                      aria-label='toggle password visibility'
-                      edge='end'
-                    >
+                    <IconButton aria-label='search' edge='end'>
                       <SearchIcon />
                     </IconButton>
                   </InputAdornment>
@@ -287,9 +282,9 @@ function App() {
                   <Typography>Gênero:</Typography>
                   <RadioGroup
                     row
-                    aria-labelledby='demo-row-radio-buttons-group-label'
-                    name='row-radio-buttons-group'
-                    value={filters[0].value}
+                    aria-labelledby='genders-group'
+                    name='genders-group'
+                    value={filters.gender.value}
                     sx={{ flexDirection: 'column', paddingRight: 5 }}
                     onChange={handleChangeGender}
                   >
@@ -314,7 +309,7 @@ function App() {
                     label='Idade'
                     type='number'
                     onChange={handleChangeAge}
-                    value={filters[1].value}
+                    value={filters.age.value}
                   />
                 </FormControl>
               </Box>
@@ -327,7 +322,7 @@ function App() {
                   <Select
                     labelId='demo-simple-select-label'
                     id='demo-simple-select'
-                    value={filters[2].value}
+                    value={filters.nationality.value}
                     label='Nacionalidade'
                     onChange={handleChangeNationality}
                   >
@@ -349,9 +344,9 @@ function App() {
                 width: '100%',
               }}
               onClick={handleFilter}
-              disabled={
-                filters.some((obj) => obj.selected === true) ? false : true
-              }
+              // disabled={
+              //   Object.keys(filters).some((obj) => obj.selected === true) ? false : true
+              // }
             >
               Filtrar
             </Button>
@@ -365,9 +360,9 @@ function App() {
                 width: '100%',
               }}
               onClick={handleFilterClean}
-              disabled={
-                filters.some((obj) => obj.selected === true) ? false : true
-              }
+              // disabled={
+              //   filters.some((obj) => obj.selected === true) ? false : true
+              // }
             >
               Limpar filtros
             </Button>
