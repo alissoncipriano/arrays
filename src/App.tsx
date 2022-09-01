@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
@@ -13,131 +12,19 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Select from '@mui/material/Select';
-import { SelectChangeEvent } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import { AppStyled } from './AppStyled';
 import { Person } from './constants/types';
 import Table from './models/Table';
 import { columns, filterObject } from './features/home/constants';
 import { fetchTableData } from './utils/functionUtils';
+import { handleFilters } from './features/home/utils';
 
 function App() {
   const [tableData, setTableData] = useState<Person[]>([]);
   const [filters, setFilters] = useState(filterObject);
-
-  const handleChangeNationality = (event) => {
-    const newNationality = {
-      ...filters.nationality,
-      selected: true,
-      value: event.target.value as string,
-    };
-
-    setFilters({ ...filters, nationality: newNationality });
-  };
-
-  const handleChangeAge = (event) => {
-    const newAge = {
-      ...filters.age,
-      selected: true,
-      value: event.target.value as string,
-    };
-
-    setFilters({ ...filters, age: newAge });
-  };
-
-  const handleChangeGender = (event) => {
-    const newGender = {
-      ...filters.gender,
-      selected: true,
-      value: (event.target as HTMLInputElement).value,
-    };
-
-    setFilters({ ...filters, gender: newGender });
-  };
-
-  const filterCase = (): string => {
-    if (
-      filters.gender.selected &&
-      filters.age.selected &&
-      filters.nationality.selected
-    )
-      return 'all';
-    if (filters.gender.selected && filters.age.selected) return 'gender-age';
-    if (filters.gender.selected && filters.nationality.selected)
-      return 'gender-nationality';
-    if (filters.age.selected && filters.nationality.selected)
-      return 'age-nationality';
-    if (filters.gender.selected) return 'gender';
-    if (filters.age.selected) return 'age';
-    return 'nationality';
-  };
-
-  const handleFilter = () => {
-    switch (filterCase()) {
-      case 'all':
-        setTableData(
-          Table.getPeople().filter(
-            (el) =>
-              el.gender === filters.gender.value &&
-              el.age === Number.parseInt(filters.age.value) &&
-              el.nat === filters.nationality.value
-          )
-        );
-        break;
-      case 'gender-age':
-        setTableData(
-          Table.getPeople().filter(
-            (el) =>
-              el.gender === filters.gender.value &&
-              el.age === Number.parseInt(filters.age.value)
-          )
-        );
-        break;
-      case 'gender-nationality':
-        setTableData(
-          Table.getPeople().filter(
-            (el) =>
-              el.gender === filters.gender.value &&
-              el.nat === filters.nationality.value
-          )
-        );
-        break;
-
-      case 'age-nationality':
-        setTableData(
-          Table.getPeople().filter(
-            (el) =>
-              el.age === Number.parseInt(filters.age.value) &&
-              el.nat === filters.nationality.value
-          )
-        );
-        break;
-      case 'gender':
-        setTableData(
-          Table.getPeople().filter((el) => el.gender === filters.gender.value)
-        );
-        break;
-      case 'age':
-        setTableData(
-          Table.getPeople().filter(
-            (el) => el.age === Number.parseInt(filters.age.value)
-          )
-        );
-        break;
-      case 'nationality':
-        setTableData(
-          Table.getPeople().filter((el) => el.nat === filters.nationality.value)
-        );
-        break;
-    }
-  };
-
-  const handleFilterClean = () => {
-    setFilters({ ...filterObject });
-    setTableData(Table.getPeople());
-  };
 
   useEffect(() => {
     fetchTableData().then(() => {
@@ -220,7 +107,11 @@ function App() {
                     name='genders-group'
                     value={filters.gender.value}
                     sx={{ flexDirection: 'column', paddingRight: 5 }}
-                    onChange={handleChangeGender}
+                    onChange={(e) =>
+                      setFilters(
+                        handleFilters.update(filters, 'gender', e.target)
+                      )
+                    }
                   >
                     <FormControlLabel
                       value='feminino'
@@ -242,7 +133,9 @@ function App() {
                     id='outlined-number'
                     label='Idade'
                     type='number'
-                    onChange={handleChangeAge}
+                    onChange={(e) =>
+                      setFilters(handleFilters.update(filters, 'age', e.target))
+                    }
                     value={filters.age.value}
                   />
                 </FormControl>
@@ -258,7 +151,11 @@ function App() {
                     id='demo-simple-select'
                     value={filters.nationality.value}
                     label='Naturalidade'
-                    onChange={handleChangeNationality}
+                    onChange={(e) =>
+                      setFilters(
+                        handleFilters.update(filters, 'nationality', e.target)
+                      )
+                    }
                   >
                     {Table.getNat().length > 0 &&
                       Table.getNat().map((el, index) => (
@@ -279,7 +176,7 @@ function App() {
                 padding: 2,
                 width: '100%',
               }}
-              onClick={handleFilter}
+              onClick={() => setTableData(handleFilters.apply(filters))}
               // disabled={
               //   Object.keys(filters).some((obj) => obj.selected === true) ? false : true
               // }
@@ -295,7 +192,10 @@ function App() {
                 padding: 2,
                 width: '100%',
               }}
-              onClick={handleFilterClean}
+              onClick={() => {
+                setFilters(handleFilters.clean());
+                setTableData(Table.getPeople());
+              }}
               // disabled={
               //   filters.some((obj) => obj.selected === true) ? false : true
               // }
@@ -304,29 +204,6 @@ function App() {
             </Button>
           </form>
         </Box>
-      </Box>
-
-      <Box
-        sx={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '70vh',
-          flex: 1,
-          marginTop: '4em',
-        }}
-      >
-        <Typography variant='h4' fontSize='1.8em' marginBottom={3}>
-          Tabela original
-        </Typography>
-
-        <DataGrid
-          rows={Table.getPeople()}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[5]}
-          disableSelectionOnClick
-        />
       </Box>
     </AppStyled>
   );

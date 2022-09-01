@@ -1,4 +1,5 @@
 import { GridColDef } from '@mui/x-data-grid';
+import { ProfilePic } from './components/ProfilePic/ProfilePic';
 
 const filterObject = {
   gender: {
@@ -20,7 +21,7 @@ const columns: GridColDef[] = [
     field: 'picture',
     headerName: 'Foto',
     width: 90,
-    renderCell: (params) => <img src={params.value} />,
+    renderCell: (params) => <ProfilePic url={params.value} />,
     sortable: false,
   },
   { field: 'name', headerName: 'Nome', width: 180, sortable: false },
