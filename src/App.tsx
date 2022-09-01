@@ -1,80 +1,33 @@
+import { useEffect, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
-import {
-  Avatar,
-  Box,
-  Button,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Radio,
-  RadioGroup,
-  Select,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-} from '@mui/material';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import Select from '@mui/material/Select';
+import { SelectChangeEvent } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
 import { AppStyled } from './AppStyled';
-
-const columns: GridColDef[] = [
-  {
-    field: 'picture',
-    headerName: 'Foto',
-    width: 90,
-    renderCell: (params) => <Avatar src={params.value} />,
-    sortable: false,
-  },
-  { field: 'name', headerName: 'Nome', width: 180, sortable: false },
-  { field: 'email', headerName: 'Email', width: 280, sortable: false },
-  { field: 'phone', headerName: 'Celular', width: 160, sortable: false },
-  { field: 'age', headerName: 'Idade', width: 90, sortable: false },
-  { field: 'nat', headerName: 'Naturalidade', width: 120, sortable: false },
-  { field: 'gender', headerName: 'Gênero', width: 90, sortable: false },
-];
-
-async function getPeople() {
-  const response = await fetch('https://randomuser.me/api/?results=50');
-  return response.json();
-}
-
-type row = {
-  id: number;
-  picture: string;
-  name: string;
-  email: string;
-  phone: string;
-  age: number;
-  nat: string;
-  gender: 'feminino' | 'masculino';
-};
-
-const filterObject = {
-  gender: {
-    selected: false,
-    value: '',
-  },
-  age: {
-    selected: false,
-    value: '',
-  },
-  nationality: {
-    selected: false,
-    value: '',
-  },
-};
+import { Person } from './constants/types';
+import Table from './models/Table';
+import { columns, filterObject } from './features/home/constants';
+import { fetchTableData } from './utils/functionUtils';
 
 function App() {
-  const [tableData, setTableData] = useState<row[]>([]);
-  const [originalData, setOriginalData] = useState<row[]>([]);
-  const [nationalities, setNationalities] = useState([]);
+  const [tableData, setTableData] = useState<Person[]>([]);
   const [filters, setFilters] = useState(filterObject);
 
-  const handleChangeNationality = (event: SelectChangeEvent) => {
+  const handleChangeNationality = (event) => {
     const newNationality = {
       ...filters.nationality,
       selected: true,
@@ -94,7 +47,7 @@ function App() {
     setFilters({ ...filters, age: newAge });
   };
 
-  const handleChangeGender = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeGender = (event) => {
     const newGender = {
       ...filters.gender,
       selected: true,
@@ -125,7 +78,7 @@ function App() {
     switch (filterCase()) {
       case 'all':
         setTableData(
-          originalData.filter(
+          Table.getPeople().filter(
             (el) =>
               el.gender === filters.gender.value &&
               el.age === Number.parseInt(filters.age.value) &&
@@ -135,7 +88,7 @@ function App() {
         break;
       case 'gender-age':
         setTableData(
-          originalData.filter(
+          Table.getPeople().filter(
             (el) =>
               el.gender === filters.gender.value &&
               el.age === Number.parseInt(filters.age.value)
@@ -144,7 +97,7 @@ function App() {
         break;
       case 'gender-nationality':
         setTableData(
-          originalData.filter(
+          Table.getPeople().filter(
             (el) =>
               el.gender === filters.gender.value &&
               el.nat === filters.nationality.value
@@ -154,7 +107,7 @@ function App() {
 
       case 'age-nationality':
         setTableData(
-          originalData.filter(
+          Table.getPeople().filter(
             (el) =>
               el.age === Number.parseInt(filters.age.value) &&
               el.nat === filters.nationality.value
@@ -163,19 +116,19 @@ function App() {
         break;
       case 'gender':
         setTableData(
-          originalData.filter((el) => el.gender === filters.gender.value)
+          Table.getPeople().filter((el) => el.gender === filters.gender.value)
         );
         break;
       case 'age':
         setTableData(
-          originalData.filter(
+          Table.getPeople().filter(
             (el) => el.age === Number.parseInt(filters.age.value)
           )
         );
         break;
       case 'nationality':
         setTableData(
-          originalData.filter((el) => el.nat === filters.nationality.value)
+          Table.getPeople().filter((el) => el.nat === filters.nationality.value)
         );
         break;
     }
@@ -183,31 +136,12 @@ function App() {
 
   const handleFilterClean = () => {
     setFilters({ ...filterObject });
-    setTableData(originalData);
+    setTableData(Table.getPeople());
   };
 
   useEffect(() => {
-    getPeople().then((data) => {
-      const people = data.results.map((el, index) => ({
-        id: index,
-        picture: el.picture.thumbnail,
-        name: `${el.name.first} ${el.name.last}`,
-        email: el.email,
-        phone: el.phone,
-        age: el.dob.age,
-        nat: el.nat,
-        gender: el.gender === 'female' ? 'feminino' : 'masculino',
-      }));
-
-      const nationalities = data.results
-        .map((p) => p.nat)
-        .filter(function (value, index, array) {
-          return array.indexOf(value) === index;
-        });
-
-      setTableData(people);
-      setOriginalData(people);
-      setNationalities(nationalities);
+    fetchTableData().then(() => {
+      setTableData(Table.getPeople());
     });
   }, []);
 
@@ -317,18 +251,20 @@ function App() {
               <Box sx={{ flex: 2 }}>
                 <FormControl fullWidth>
                   <InputLabel id='demo-simple-select-label'>
-                    Nacionalidade
+                    Naturalidade
                   </InputLabel>
                   <Select
                     labelId='demo-simple-select-label'
                     id='demo-simple-select'
                     value={filters.nationality.value}
-                    label='Nacionalidade'
+                    label='Naturalidade'
                     onChange={handleChangeNationality}
                   >
-                    {nationalities.length > 0 &&
-                      nationalities.map((el) => (
-                        <MenuItem value={el}>{el}</MenuItem>
+                    {Table.getNat().length > 0 &&
+                      Table.getNat().map((el, index) => (
+                        <MenuItem value={String(el)} key={index}>
+                          {el}
+                        </MenuItem>
                       ))}
                   </Select>
                 </FormControl>
@@ -385,7 +321,7 @@ function App() {
         </Typography>
 
         <DataGrid
-          rows={originalData}
+          rows={Table.getPeople()}
           columns={columns}
           pageSize={10}
           rowsPerPageOptions={[5]}
