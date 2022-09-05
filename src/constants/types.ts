@@ -13,3 +13,18 @@ export type Data = {
   people: Person[];
   nationalities: String[];
 };
+
+export type filtersType = {
+  gender: {
+    selected: boolean;
+    value: string;
+  };
+  age: {
+    selected: boolean;
+    value: string;
+  };
+  nationality: {
+    selected: boolean;
+    value: string;
+  };
+};
