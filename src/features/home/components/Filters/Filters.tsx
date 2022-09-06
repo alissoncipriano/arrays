@@ -1,4 +1,3 @@
-import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import InputLabel from '@mui/material/InputLabel';
@@ -10,7 +9,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import { Box } from '@mui/system';
-import { filtersType, Person } from '@src/constants/types';
+import { filtersType } from '@src/constants/types';
 import { handleFilters } from '../../utils';
 import MTable from '../../../../models/Table';
 
