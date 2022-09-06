@@ -17,10 +17,9 @@ import MTable from '../../../../models/Table';
 interface IProps {
   filters: filtersType;
   setFilters: React.Dispatch<React.SetStateAction<filtersType>>;
-  setTableData: React.Dispatch<React.SetStateAction<Person[]>>;
 }
 
-export const Filters = ({ filters, setFilters, setTableData }: IProps) => {
+export const Filters = ({ filters, setFilters }: IProps) => {
   return (
     <>
       <Typography sx={{ marginBottom: '15px', fontWeight: '800' }}>
@@ -108,41 +107,6 @@ export const Filters = ({ filters, setFilters, setTableData }: IProps) => {
             </FormControl>
           </Box>
         </Box>
-
-        <Button
-          variant='contained'
-          size='large'
-          sx={{
-            marginTop: 5,
-            padding: 2,
-            width: '100%',
-          }}
-          onClick={() => setTableData(handleFilters.apply(filters))}
-          // disabled={
-          //   Object.keys(filters).some((obj) => obj.selected === true) ? false : true
-          // }
-        >
-          Filtrar
-        </Button>
-
-        <Button
-          variant='outlined'
-          size='large'
-          sx={{
-            marginTop: 1,
-            padding: 2,
-            width: '100%',
-          }}
-          onClick={() => {
-            setFilters(handleFilters.clean());
-            setTableData(MTable.getPeople());
-          }}
-          // disabled={
-          //   filters.some((obj) => obj.selected === true) ? false : true
-          // }
-        >
-          Limpar filtros
-        </Button>
       </form>
     </>
   );

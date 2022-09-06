@@ -92,3 +92,9 @@ export const handleFilters = {
     return Table.getPeople();
   },
 };
+
+export const handleSearch = (text: string) => {
+  return Table.getPeople().filter((person) =>
+    person.name.toLowerCase().includes(text.toLowerCase())
+  );
+};

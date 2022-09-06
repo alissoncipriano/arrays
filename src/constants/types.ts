@@ -27,4 +27,8 @@ export type filtersType = {
     selected: boolean;
     value: string;
   };
+  searchByName: {
+    selected: boolean;
+    value: string;
+  };
 };

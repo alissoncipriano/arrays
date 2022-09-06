@@ -9,6 +9,7 @@ import { fetchTableData } from './utils/functionUtils';
 import { Table } from './features/home/components/Table/Table';
 import { Filters } from './features/home/components/Filters/Filters';
 import { Search } from './features/home/components/Search/Search';
+import { Buttons } from './features/home/components/Buttons/Buttons';
 
 function App() {
   const [tableData, setTableData] = useState<Person[]>([]);
@@ -49,12 +50,18 @@ function App() {
             padding: '0 4em',
           }}
         >
-          <Search />
-
-          <Filters
+          <Search
+            setTableData={setTableData}
             filters={filters}
             setFilters={setFilters}
+          />
+
+          <Filters filters={filters} setFilters={setFilters} />
+
+          <Buttons
+            filters={filters}
             setTableData={setTableData}
+            setFilters={setFilters}
           />
         </Box>
       </Box>

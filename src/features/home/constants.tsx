@@ -14,6 +14,10 @@ const filterObject = {
     selected: false,
     value: '',
   },
+  searchByName: {
+    selected: false,
+    value: '',
+  },
 };
 
 const columns: GridColDef[] = [
